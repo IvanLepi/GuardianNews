@@ -6,18 +6,22 @@ import android.widget.ListView;
 
 import com.example.ivan.guardiannews.data.NewsAPI;
 import com.example.ivan.guardiannews.data.NewsResponse;
+import com.example.ivan.guardiannews.data.NewsStory;
+import com.jakewharton.retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 
 import java.util.ArrayList;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import io.reactivex.Observable;
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.annotations.NonNull;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 import retrofit2.Retrofit;
-import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
-import rx.Observable;
-import rx.Subscriber;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -37,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
         // Create a Retrofit adapter
         retrofit = new Retrofit.Builder()
                 .baseUrl(url)
-                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())   // RxJava Factory
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())   // RxJava Factory
                 .addConverterFactory(GsonConverterFactory.create())         // We are using Gson
                 .build();
 
@@ -45,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
         api = retrofit.create(NewsAPI.class);
 
         // Create adapter to convert the array to views
-        mAdapter = new NewsAdapter(this, new ArrayList<>());
+        mAdapter = new NewsAdapter(this, new ArrayList<NewsStory>());
         // Attach adapter to ListView
         listView.setAdapter(mAdapter);
 
@@ -55,20 +59,25 @@ public class MainActivity extends AppCompatActivity {
         // Subscribe on our Observable that makes our method call.
         call.subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())      // From RxAndroid library
-                .subscribe(new Subscriber<NewsResponse>() {
+                .subscribe(new Observer<NewsResponse>() {
                     @Override
-                    public void onCompleted() {
-
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
+                    public void onSubscribe(@NonNull Disposable d) {
 
                     }
 
                     @Override
                     public void onNext(NewsResponse newsResponse) {
                         mAdapter.addAll(newsResponse.getResponse().getResults());
+                    }
+
+                    @Override
+                    public void onError(Throwable t) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
                     }
                 });
     }

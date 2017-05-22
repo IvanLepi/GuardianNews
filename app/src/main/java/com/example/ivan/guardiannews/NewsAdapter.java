@@ -45,9 +45,17 @@ public class NewsAdapter extends ArrayAdapter<NewsStory> {
         holder.desc.setText(story.getSectionId());
         holder.date.setText(story.getWebPublicationDate().replaceAll("[TZ]", " "));
 
+        final String url = story.getWebUrl();
+
         // Set onClickListener to open url to the story on Guardian website
-        convertView.setOnClickListener(view ->
-                getContext().startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(story.getWebUrl())))
+        convertView.setOnClickListener(new View.OnClickListener() {
+                                           @Override
+                                           public void onClick(View view) {
+                                               getContext().startActivity(new Intent(Intent.ACTION_VIEW,
+                                                       Uri.parse(url)));
+                                           }
+                                       }
+
         );
 
         return convertView;

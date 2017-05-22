@@ -1,7 +1,8 @@
 package com.example.ivan.guardiannews.data;
 
+import io.reactivex.Observable;
 import retrofit2.http.GET;
-import rx.Observable;
+
 
 /**
  * @author Ivan Lepojevic
