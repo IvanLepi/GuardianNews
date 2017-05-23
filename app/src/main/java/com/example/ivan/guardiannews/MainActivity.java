@@ -14,10 +14,9 @@ import java.util.ArrayList;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.reactivex.Observable;
-import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -31,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
     Retrofit retrofit;
     NewsAPI api;
     String url = "http://content.guardianapis.com/";
-
+    Disposable disposable;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,14 +56,9 @@ public class MainActivity extends AppCompatActivity {
         Observable<NewsResponse> call = api.getNews();
 
         // Subscribe on our Observable that makes our method call.
-        call.subscribeOn(Schedulers.io())
+        disposable = call.subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())      // From RxAndroid library
-                .subscribe(new Observer<NewsResponse>() {
-                    @Override
-                    public void onSubscribe(@NonNull Disposable d) {
-
-                    }
-
+                .subscribeWith(new DisposableObserver<NewsResponse>(){
                     @Override
                     public void onNext(NewsResponse newsResponse) {
                         mAdapter.addAll(newsResponse.getResponse().getResults());
@@ -80,5 +74,13 @@ public class MainActivity extends AppCompatActivity {
 
                     }
                 });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if(disposable != null && !disposable.isDisposed()){
+            disposable.dispose();
+        }
     }
 }
