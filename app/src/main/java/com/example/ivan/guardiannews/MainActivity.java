@@ -2,6 +2,7 @@ package com.example.ivan.guardiannews;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.widget.ListView;
 
 import com.example.ivan.guardiannews.data.NewsAPI;
@@ -13,10 +14,11 @@ import java.util.ArrayList;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.reactivex.Observable;
+import io.reactivex.Single;
+import io.reactivex.SingleObserver;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -24,13 +26,13 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
 
+    private final String LOG_TAG = MainActivity.class.getSimpleName();
     @BindView(R.id.list)
     ListView listView;
     NewsAdapter mAdapter;
     Retrofit retrofit;
     NewsAPI api;
     String url = "http://content.guardianapis.com/";
-    Disposable disposable;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,34 +55,26 @@ public class MainActivity extends AppCompatActivity {
         listView.setAdapter(mAdapter);
 
         // Create an Observable.
-        Observable<NewsResponse> call = api.getNews();
+        Single<NewsResponse> call = api.getNews();
 
         // Subscribe on our Observable that makes our method call.
-        disposable = call.subscribeOn(Schedulers.io())
+        call.subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())      // From RxAndroid library
-                .subscribeWith(new DisposableObserver<NewsResponse>(){
+                .subscribe(new SingleObserver<NewsResponse>(){
                     @Override
-                    public void onNext(NewsResponse newsResponse) {
+                    public void onSubscribe(@NonNull Disposable d) {
+                        Log.d(LOG_TAG,"onSubscribe " + d.isDisposed());
+                    }
+
+                    @Override
+                    public void onSuccess(@NonNull NewsResponse newsResponse) {
                         mAdapter.addAll(newsResponse.getResponse().getResults());
                     }
 
                     @Override
-                    public void onError(Throwable t) {
-
-                    }
-
-                    @Override
-                    public void onComplete() {
-
+                    public void onError(@NonNull Throwable e) {
+                        Log.d(LOG_TAG,"onError: "+ e.getMessage());
                     }
                 });
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if(disposable != null && !disposable.isDisposed()){
-            disposable.dispose();
-        }
     }
 }
