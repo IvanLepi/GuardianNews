@@ -9,7 +9,7 @@ Aplication takes data from the Guardian News API, parses it and displays a list 
 *This was created while learning [RxJava][1] and [Retrofit][2]. Aditionaly, using [RxAndroid][3] for RxJava bindings for Android, [Gson converter][4] for Json parsing and [ButterKnife][5] for view binding.*
 
 
-### TODO: Convert to Kotlin.
+### TODO: Convert to Kotlin. Update dependencies.
 
 [1]: https://github.com/ReactiveX/RxJava
 [2]: https://github.com/square/retrofit	
